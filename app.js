@@ -31,6 +31,40 @@ app.post('/', (req, res) => {
   res.status(200).end();
 });
 
+// WhatsApp webhook endpoint for SendZen
+app.post('/webhooks/whatsapp', (req, res) => {
+    /**
+     * Listens for incoming WhatsApp messages from SendZen.
+     */
+    
+    // NOTE: In production, you should validate the request signature for security.
+    // See SendZen docs for how to implement webhook security.
+    
+    const data = req.body;
+    
+    // Log the entire payload for debugging purposes
+    console.log("Received webhook payload:");
+    console.log(JSON.stringify(data, null, 2));
+    
+    // A simple check to ensure the payload has the expected structure
+    try {
+        // Extract the message text and sender's number
+        const messageBody = data.entry[0].changes[0].value.messages[0].text.body;
+        const senderPhone = data.entry[0].changes[0].value.messages[0].from;
+        
+        console.log(`Message: '${messageBody}' from ${senderPhone}`);
+        
+        // Here is where you would add your bot's logic.
+        // For now, we'll just log it.
+        
+    } catch (error) {
+        // Handle cases where the payload is not a standard text message
+        console.log("Received a non-text message or unexpected payload format.");
+    }
+    
+    res.status(200).json({ status: "ok" });
+});
+
 // Start the server
 app.listen(port, () => {
   console.log(`\nListening on port ${port}\n`);
