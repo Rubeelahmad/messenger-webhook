@@ -31,14 +31,43 @@ app.post('/', (req, res) => {
   res.status(200).end();
 });
 
-// WhatsApp webhook endpoint for SendZen
+// WhatsApp webhook verification endpoint (GET)
+app.get('/webhooks/whatsapp', (req, res) => {
+    /**
+     * Verifies the webhook with Meta WhatsApp Cloud API.
+     * Meta sends a GET request with hub.mode, hub.verify_token, and hub.challenge
+     */
+    const mode = req.query['hub.mode'];
+    const token = req.query['hub.verify_token'];
+    const challenge = req.query['hub.challenge'];
+
+    // Check if a token and mode were sent
+    if (mode && token) {
+        // Check the mode and token sent are correct
+        if (mode === 'subscribe' && token === verifyToken) {
+            // Respond with 200 OK and challenge token from the request
+            console.log('WHATSAPP_WEBHOOK_VERIFIED');
+            res.status(200).send(challenge);
+        } else {
+            // Responds with '403 Forbidden' if verify tokens do not match
+            console.log('Webhook verification failed - token mismatch');
+            res.sendStatus(403);
+        }
+    } else {
+        // Responds with '400 Bad Request' if required parameters are missing
+        console.log('Webhook verification failed - missing parameters');
+        res.sendStatus(400);
+    }
+});
+
+// WhatsApp webhook endpoint for incoming messages (POST)
 app.post('/webhooks/whatsapp', (req, res) => {
     /**
-     * Listens for incoming WhatsApp messages from SendZen.
+     * Listens for incoming WhatsApp messages from Meta Cloud API.
      */
     
     // NOTE: In production, you should validate the request signature for security.
-    // See SendZen docs for how to implement webhook security.
+    // See Meta docs for how to implement webhook security.
     
     const data = req.body;
     
